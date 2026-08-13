@@ -1,0 +1,439 @@
+<div class="checkout">
+  <div class="container">
+    <h1 class="checkout__title">Checkout</h1>
+
+    <!-- Steps indicator -->
+    <div class="checkout__steps">
+      @for (s of steps; track s; let i = $index) {
+        <div class="checkout__step"
+          [class.checkout__step--active]="step() === s"
+          [class.checkout__step--done]="stepIndex() > i"
+          (click)="goTo(s)">
+          <span class="checkout__step-num">
+            @if (stepIndex() > i) {
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M2 7l3.5 3.5L12 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            } @else {
+              {{ i + 1 }}
+            }
+          </span>
+          <span class="checkout__step-label">{{ s | titlecase }}</span>
+        </div>
+        @if (i < steps.length - 1) { <div class="checkout__step-line"></div> }
+      }
+    </div>
+
+    <div class="checkout__layout">
+      <div class="checkout__main">
+
+        @if (serverError()) {
+          <div class="checkout__error" role="alert">{{ serverError() }}</div>
+        }
+
+        <!-- ── Step: Address ── -->
+        @if (step() === 'address') {
+          <div class="checkout__panel">
+            <h2>Delivery address</h2>
+
+            <!-- Saved addresses -->
+            @if (savedAddressesLoaded() && savedAddresses().length > 0) {
+              <div class="saved-addresses">
+                <p class="saved-addresses__label">Choose a saved address</p>
+                <div class="saved-addresses__grid">
+                  @for (addr of savedAddresses(); track addr.id) {
+                    <button type="button" class="saved-address-card"
+                      [class.saved-address-card--selected]="selectedSavedAddressId() === addr.id"
+                      (click)="selectSavedAddress(addr.id)">
+                      <span class="saved-address-card__badge">
+                        @if (addr.isDefault) { Default }
+                        @else { {{ addr.label }} }
+                      </span>
+                      <span class="saved-address-card__name">{{ addr.firstName }} {{ addr.lastName }}</span>
+                      <span class="saved-address-card__line">{{ addr.line1 }}</span>
+                      @if (addr.line2) { <span class="saved-address-card__line">{{ addr.line2 }}</span> }
+                      <span class="saved-address-card__line">{{ addr.town }}, {{ addr.postcode }}</span>
+                    </button>
+                  }
+                </div>
+                <button type="button" class="btn-link" (click)="useNewAddress()">
+                  + Use a different address
+                </button>
+              </div>
+            }
+
+            <!-- New address form -->
+            @if (showNewAddressForm() || !savedAddresses().length) {
+              <div class="form-row">
+                <div class="form-group" [class.form-group--error]="addressErrors()['firstName']">
+                  <label class="form-label" for="a-firstName">First name</label>
+                  <input class="form-input" id="a-firstName" type="text"
+                    [(ngModel)]="address.firstName" name="firstName"
+                    maxlength="100" autocomplete="given-name"
+                    (ngModelChange)="clearAddressError('firstName')"
+                    [class.form-input--error]="addressErrors()['firstName']">
+                  @if (addressErrors()['firstName']) {
+                    <span class="form-error" role="alert">{{ addressErrors()['firstName'] }}</span>
+                  }
+                </div>
+                <div class="form-group" [class.form-group--error]="addressErrors()['lastName']">
+                  <label class="form-label" for="a-lastName">Last name</label>
+                  <input class="form-input" id="a-lastName" type="text"
+                    [(ngModel)]="address.lastName" name="lastName"
+                    maxlength="100" autocomplete="family-name"
+                    (ngModelChange)="clearAddressError('lastName')"
+                    [class.form-input--error]="addressErrors()['lastName']">
+                  @if (addressErrors()['lastName']) {
+                    <span class="form-error" role="alert">{{ addressErrors()['lastName'] }}</span>
+                  }
+                </div>
+              </div>
+
+              <div class="form-group" [class.form-group--error]="addressErrors()['line1']">
+                <label class="form-label" for="a-line1">Address line 1</label>
+                <input class="form-input" id="a-line1" type="text"
+                  [(ngModel)]="address.line1" name="line1"
+                  maxlength="250" autocomplete="address-line1"
+                  (ngModelChange)="clearAddressError('line1')"
+                  [class.form-input--error]="addressErrors()['line1']">
+                @if (addressErrors()['line1']) {
+                  <span class="form-error" role="alert">{{ addressErrors()['line1'] }}</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Address line 2 <span class="form-label--opt">(optional)</span></label>
+                <input class="form-input" type="text"
+                  [(ngModel)]="address.line2" name="line2"
+                  maxlength="250" autocomplete="address-line2">
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" [class.form-group--error]="addressErrors()['town']">
+                  <label class="form-label" for="a-town">Town / City</label>
+                  <input class="form-input" id="a-town" type="text"
+                    [(ngModel)]="address.town" name="town"
+                    maxlength="120" autocomplete="address-level2"
+                    (ngModelChange)="clearAddressError('town')"
+                    [class.form-input--error]="addressErrors()['town']">
+                  @if (addressErrors()['town']) {
+                    <span class="form-error" role="alert">{{ addressErrors()['town'] }}</span>
+                  }
+                </div>
+                <div class="form-group">
+                  <label class="form-label">County <span class="form-label--opt">(optional)</span></label>
+                  <input class="form-input" type="text"
+                    [(ngModel)]="address.county" name="county" maxlength="120">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" [class.form-group--error]="addressErrors()['postcode']">
+                  <label class="form-label" for="a-postcode">Postcode</label>
+                  <input class="form-input" id="a-postcode" type="text"
+                    [(ngModel)]="address.postcode" name="postcode"
+                    maxlength="10" autocomplete="postal-code"
+                    placeholder="e.g. SW1A 1AA"
+                    (ngModelChange)="clearAddressError('postcode')"
+                    [class.form-input--error]="addressErrors()['postcode']">
+                  @if (addressErrors()['postcode']) {
+                    <span class="form-error" role="alert">{{ addressErrors()['postcode'] }}</span>
+                  }
+                </div>
+                <div class="form-group" [class.form-group--error]="addressErrors()['phone']">
+                  <label class="form-label" for="a-phone">Phone number</label>
+                  <input class="form-input" id="a-phone" type="tel"
+                    [(ngModel)]="address.phone" name="phone"
+                    maxlength="20" autocomplete="tel"
+                    placeholder="e.g. 07700 900000"
+                    (ngModelChange)="clearAddressError('phone')"
+                    [class.form-input--error]="addressErrors()['phone']">
+                  @if (addressErrors()['phone']) {
+                    <span class="form-error" role="alert">{{ addressErrors()['phone'] }}</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Save address option -->
+              <div class="save-address-toggle">
+                <input type="checkbox" id="saveAddress" [checked]="saveNewAddress()"
+                  (change)="saveNewAddress.set($any($event.target).checked)">
+                <label for="saveAddress">Save this address for next time</label>
+              </div>
+              @if (saveNewAddress()) {
+                <div class="form-group form-group--indent">
+                  <label class="form-label" for="a-label">Address label</label>
+                  <input class="form-input" id="a-label" type="text"
+                    [(ngModel)]="newAddressLabel" name="addressLabel"
+                    maxlength="100" placeholder="e.g. Home, Work">
+                </div>
+              }
+            }
+
+            <button class="btn btn--primary" type="button" (click)="nextStep()">
+              Continue to delivery
+            </button>
+          </div>
+        }
+
+        <!-- ── Step: Delivery ── -->
+        @if (step() === 'delivery') {
+          <div class="checkout__panel">
+            <h2>Delivery method</h2>
+            <div class="delivery-options">
+              <label class="delivery-option" [class.delivery-option--selected]="deliveryOption === 'standard'">
+                <input type="radio" [(ngModel)]="deliveryOption" value="standard" name="delivery">
+                <div class="delivery-option__info">
+                  <strong>Standard delivery</strong>
+                  <p>Delivered in 3–5 working days</p>
+                </div>
+                <span class="delivery-option__price">
+                  {{ (basket()?.subTotal ?? 0) >= 50 ? 'FREE' : '£3.95' }}
+                </span>
+              </label>
+              <label class="delivery-option" [class.delivery-option--selected]="deliveryOption === 'express'">
+                <input type="radio" [(ngModel)]="deliveryOption" value="express" name="delivery">
+                <div class="delivery-option__info">
+                  <strong>Express delivery</strong>
+                  <p>Next day if ordered by 6pm</p>
+                </div>
+                <span class="delivery-option__price">£5.95</span>
+              </label>
+            </div>
+            <button class="btn btn--primary" type="button" (click)="nextStep()">
+              Continue to payment
+            </button>
+          </div>
+        }
+
+        <!-- ── Step: Payment ── -->
+        @if (step() === 'payment') {
+          <div class="checkout__panel">
+            <h2>Payment details</h2>
+
+            <!-- Payment method tabs -->
+            <div class="payment-method-tabs" role="tablist">
+              <button type="button" role="tab"
+                class="payment-tab"
+                [class.payment-tab--active]="paymentMethod() === 'razorpay'"
+                (click)="selectPaymentMethod('razorpay')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+                  <path d="M2 10h20" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Razorpay
+                <span class="payment-tab__badge">Recommended</span>
+              </button>
+              <button type="button" role="tab"
+                class="payment-tab"
+                [class.payment-tab--active]="paymentMethod() === 'card'"
+                (click)="selectPaymentMethod('card')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
+                  <path d="M2 10h20" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="6" cy="15" r="1.5" fill="currentColor"/>
+                </svg>
+                Card (mock)
+              </button>
+            </div>
+
+            <!-- Razorpay option -->
+            @if (paymentMethod() === 'razorpay') {
+              <div class="razorpay-panel">
+                <div class="razorpay-info">
+                  <p>You'll be redirected to Razorpay's secure payment popup to enter your card details.</p>
+                  <p class="razorpay-test-note">
+                    <strong>Test mode</strong> — use card <code>4111 1111 1111 1111</code>,
+                    any future expiry, any CVV, OTP <code>1234</code>.
+                  </p>
+                </div>
+              </div>
+            }
+
+            <!-- Card option (existing mock flow) -->
+            @if (paymentMethod() === 'card') {
+              <!-- Saved cards -->
+              @if (savedCardsLoaded() && savedCards().length > 0) {
+                <div class="saved-cards">
+                  <p class="saved-cards__label">Saved cards</p>
+                  <div class="saved-cards__grid">
+                    @for (card of savedCards(); track card.id) {
+                      <button type="button" class="saved-card-chip"
+                        [class.saved-card-chip--selected]="selectedCardId() === card.id"
+                        (click)="selectSavedCard(card.id)">
+                        <span class="saved-card-chip__brand">{{ card.brand }}</span>
+                        <span class="saved-card-chip__number">···· {{ card.last4 }}</span>
+                        <span class="saved-card-chip__expiry">{{ card.expiryMonth }}/{{ card.expiryYear }}</span>
+                        @if (card.isDefault) {
+                          <span class="saved-card-chip__badge">Default</span>
+                        }
+                      </button>
+                    }
+                  </div>
+                  <button type="button" class="btn-link" (click)="useNewCard()">
+                    + Use a different card
+                  </button>
+                </div>
+              }
+
+              <!-- New card form -->
+              @if (showNewCardForm() || !savedCards().length) {
+                <div class="new-card-form">
+                  <div class="form-group" [class.form-group--error]="paymentErrors()['cardNumber']">
+                    <label class="form-label" for="p-cardNumber">Card number</label>
+                    <input class="form-input" id="p-cardNumber" type="text"
+                      [(ngModel)]="payment.cardNumber" name="cardNumber"
+                      placeholder="1234 5678 9012 3456" maxlength="19"
+                      autocomplete="cc-number"
+                      (ngModelChange)="clearPaymentError('cardNumber')"
+                      [class.form-input--error]="paymentErrors()['cardNumber']">
+                    @if (paymentErrors()['cardNumber']) {
+                      <span class="form-error" role="alert">{{ paymentErrors()['cardNumber'] }}</span>
+                    }
+                  </div>
+
+                  <div class="form-group" [class.form-group--error]="paymentErrors()['cardHolder']">
+                    <label class="form-label" for="p-cardHolder">Cardholder name</label>
+                    <input class="form-input" id="p-cardHolder" type="text"
+                      [(ngModel)]="payment.cardHolder" name="cardHolder"
+                      placeholder="Name as it appears on card" maxlength="100"
+                      autocomplete="cc-name"
+                      (ngModelChange)="clearPaymentError('cardHolder')"
+                      [class.form-input--error]="paymentErrors()['cardHolder']">
+                    @if (paymentErrors()['cardHolder']) {
+                      <span class="form-error" role="alert">{{ paymentErrors()['cardHolder'] }}</span>
+                    }
+                  </div>
+
+                  <div class="form-row form-row--3">
+                    <div class="form-group" [class.form-group--error]="paymentErrors()['expiryMonth']">
+                      <label class="form-label" for="p-expMonth">Expiry month</label>
+                      <input class="form-input" id="p-expMonth" type="text"
+                        [(ngModel)]="payment.expiryMonth" name="expiryMonth"
+                        placeholder="MM" maxlength="2" autocomplete="cc-exp-month"
+                        (ngModelChange)="clearPaymentError('expiryMonth')"
+                        [class.form-input--error]="paymentErrors()['expiryMonth']">
+                      @if (paymentErrors()['expiryMonth']) {
+                        <span class="form-error" role="alert">{{ paymentErrors()['expiryMonth'] }}</span>
+                      }
+                    </div>
+                    <div class="form-group" [class.form-group--error]="paymentErrors()['expiryYear']">
+                      <label class="form-label" for="p-expYear">Expiry year</label>
+                      <input class="form-input" id="p-expYear" type="text"
+                        [(ngModel)]="payment.expiryYear" name="expiryYear"
+                        placeholder="YY" maxlength="2" autocomplete="cc-exp-year"
+                        (ngModelChange)="clearPaymentError('expiryYear')"
+                        [class.form-input--error]="paymentErrors()['expiryYear']">
+                      @if (paymentErrors()['expiryYear']) {
+                        <span class="form-error" role="alert">{{ paymentErrors()['expiryYear'] }}</span>
+                      }
+                    </div>
+                    <div class="form-group" [class.form-group--error]="paymentErrors()['cvv']">
+                      <label class="form-label" for="p-cvv">Security code</label>
+                      <input class="form-input" id="p-cvv" type="password"
+                        [(ngModel)]="payment.cvv" name="cvv"
+                        placeholder="CVV" maxlength="4" autocomplete="cc-csc"
+                        (ngModelChange)="clearPaymentError('cvv')"
+                        [class.form-input--error]="paymentErrors()['cvv']">
+                      @if (paymentErrors()['cvv']) {
+                        <span class="form-error" role="alert">{{ paymentErrors()['cvv'] }}</span>
+                      }
+                    </div>
+                  </div>
+
+                  <label class="save-card-toggle">
+                    <input type="checkbox" [checked]="saveNewCard()"
+                      (change)="saveNewCard.set($any($event.target).checked)">
+                    <span>Save this card for future orders</span>
+                  </label>
+                </div>
+              }
+            }
+
+            <button class="btn btn--primary" type="button" (click)="nextStep()">
+              Review order
+            </button>
+          </div>
+        }
+
+        <!-- ── Step: Review ── -->
+        @if (step() === 'review') {
+          <div class="checkout__panel">
+            <h2>Review your order</h2>
+
+            <div class="review-section">
+              <div class="review-section__header">
+                <h3>Delivery address</h3>
+                <button type="button" class="review-section__edit" (click)="goTo('address')">Edit</button>
+              </div>
+              <p>{{ address.firstName }} {{ address.lastName }}</p>
+              <p>{{ address.line1 }}@if (address.line2) {, {{ address.line2 }}}</p>
+              <p>{{ address.town }}@if (address.county) {, {{ address.county }}}, {{ address.postcode }}</p>
+              <p>{{ address.phone }}</p>
+            </div>
+
+            <div class="review-section">
+              <div class="review-section__header">
+                <h3>Delivery method</h3>
+                <button type="button" class="review-section__edit" (click)="goTo('delivery')">Edit</button>
+              </div>
+              <p>{{ deliveryOption === 'express' ? 'Express delivery' : 'Standard delivery' }}
+                — {{ deliveryCharge() === 0 ? 'FREE' : '£' + deliveryCharge().toFixed(2) }}</p>
+            </div>
+
+            <div class="review-section">
+              <div class="review-section__header">
+                <h3>Payment</h3>
+                <button type="button" class="review-section__edit" (click)="goTo('payment')">Edit</button>
+              </div>
+              <p>{{ reviewPaymentLabel() }}</p>
+            </div>
+
+            <div class="review-section">
+              <h3>Items ({{ basket()?.itemCount }})</h3>
+              @for (item of basket()?.items; track item.id) {
+                <div class="review-item">
+                  <span>{{ item.productName }} × {{ item.quantity }}</span>
+                  <span>£{{ item.lineTotal.toFixed(2) }}</span>
+                </div>
+              }
+            </div>
+
+            <button class="btn btn--primary btn--full" type="button"
+              [disabled]="submitting()" (click)="placeOrder()">
+              @if (submitting()) { Placing order... } @else { Place order — £{{ orderTotal().toFixed(2) }} }
+            </button>
+          </div>
+        }
+
+      </div>
+
+      <!-- Order sidebar -->
+      <div class="checkout__sidebar">
+        <div class="order-summary">
+          <h2 class="order-summary__title">Order summary</h2>
+          @for (item of basket()?.items; track item.id) {
+            <div class="order-summary__item">
+              <span class="order-summary__item-name">{{ item.productName }}</span>
+              <span>£{{ item.lineTotal.toFixed(2) }}</span>
+            </div>
+          }
+          <div class="order-summary__divider"></div>
+          <div class="order-summary__row">
+            <span>Subtotal</span>
+            <span>£{{ (basket()?.subTotal ?? 0).toFixed(2) }}</span>
+          </div>
+          <div class="order-summary__row">
+            <span>Delivery</span>
+            <span>{{ deliveryCharge() === 0 ? 'FREE' : '£' + deliveryCharge().toFixed(2) }}</span>
+          </div>
+          <div class="order-summary__divider"></div>
+          <div class="order-summary__row order-summary__row--total">
+            <span>Total</span>
+            <span>£{{ orderTotal().toFixed(2) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

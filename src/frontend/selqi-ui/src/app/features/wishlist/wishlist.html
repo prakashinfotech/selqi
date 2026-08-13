@@ -1,0 +1,62 @@
+<div class="wishlist-page">
+  <div class="container">
+    <h1 class="wishlist-page__title">My wishlist</h1>
+
+    @if (loading()) {
+      <div class="wishlist-grid">
+        @for (_ of [1,2,3,4]; track _) {
+          <div class="wishlist-card wishlist-card--skeleton">
+            <div class="wishlist-card__img wishlist-card__img--skeleton"></div>
+            <div class="wishlist-card__body">
+              <div class="skeleton-line skeleton-line--title"></div>
+              <div class="skeleton-line skeleton-line--price"></div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (items().length === 0) {
+      <div class="wishlist-empty">
+        <p>Your wishlist is empty. Browse products and save your favourites.</p>
+        <a class="btn btn--primary" routerLink="/">Start browsing</a>
+      </div>
+    } @else {
+      <div class="wishlist-grid">
+        @for (item of items(); track item.id) {
+          <div class="wishlist-card">
+            <a [routerLink]="['/product', item.productSlug]" class="wishlist-card__img-link">
+              @if (item.productImageUrl) {
+                <img class="wishlist-card__img" [src]="item.productImageUrl" [alt]="item.productName">
+              } @else {
+                <div class="wishlist-card__img img-unavailable">No Image<br>available</div>
+              }
+            </a>
+            <div class="wishlist-card__body">
+              <a class="wishlist-card__name" [routerLink]="['/product', item.productSlug]">
+                {{ item.productName }}
+              </a>
+              <div class="wishlist-card__price-row">
+                <span class="wishlist-card__price">£{{ item.price.toFixed(2) }}</span>
+                @if (item.wasPrice) {
+                  <span class="wishlist-card__was">£{{ item.wasPrice.toFixed(2) }}</span>
+                }
+              </div>
+              @if (!item.isAvailable) {
+                <p class="wishlist-card__oos">Out of stock</p>
+              }
+              <div class="wishlist-card__actions">
+                <button class="btn btn--primary btn--sm" type="button"
+                  [disabled]="!item.isAvailable || addingToBasket() === item.productId"
+                  (click)="addToBasket(item)">
+                  @if (addingToBasket() === item.productId) { Adding... } @else { Add to trolley }
+                </button>
+                <button class="btn btn--ghost btn--sm" type="button" (click)="removeItem(item.productId)">
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

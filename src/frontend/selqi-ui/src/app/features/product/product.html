@@ -1,0 +1,177 @@
+@if (loading()) {
+  <div class="container pdp-loading">
+    <div class="pdp-skeleton__img"></div>
+    <div class="pdp-skeleton__info">
+      <div class="skeleton-line skeleton-line--xl"></div>
+      <div class="skeleton-line skeleton-line--lg"></div>
+      <div class="skeleton-line skeleton-line--sm"></div>
+      <div class="skeleton-line skeleton-line--price"></div>
+    </div>
+  </div>
+} @else if (!product()) {
+  <div class="container pdp-error">
+    <p>Product not found.</p>
+    <a class="btn btn--primary" routerLink="/">Back to home</a>
+  </div>
+} @else {
+  @let p = product()!;
+
+  <div class="container">
+    <nav class="breadcrumb">
+      <a routerLink="/">Home</a>
+      <span>/</span>
+      <a [routerLink]="['/category', p.categorySlug]">{{ p.categoryName }}</a>
+      <span>/</span>
+      <span>{{ p.name }}</span>
+    </nav>
+
+    <div class="pdp">
+      <!-- Image gallery -->
+      <div class="pdp__gallery">
+        <div class="pdp__main-image">
+          @if (currentImage()) {
+            <img [src]="currentImage()!.url" [alt]="currentImage()!.altText">
+          } @else {
+            <div class="pdp__image-placeholder">
+              <span class="img-unavailable">No Image available</span>
+            </div>
+          }
+          @if (!p.isAvailable) {
+            <div class="pdp__oos-overlay">Out of Stock</div>
+          }
+        </div>
+        @if (p.images.length > 1) {
+          <div class="pdp__thumbnails">
+            @for (img of p.images; track img.url; let i = $index) {
+              <button class="pdp__thumb" type="button"
+                [class.pdp__thumb--active]="selectedImage() === i"
+                [title]="img.altText"
+                (click)="selectImage(i)">
+                <img [src]="img.url" [alt]="img.altText" [title]="img.altText">
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Product info -->
+      <div class="pdp__info">
+        <p class="pdp__brand">{{ p.brandName }}</p>
+        <h1 class="pdp__name">{{ p.name }}</h1>
+        <p class="pdp__sku">SKU: {{ p.sku }}</p>
+
+        <div class="pdp__rating">
+          <span class="stars">★ {{ p.rating.toFixed(1) }}</span>
+          <span class="review-count">({{ p.reviewCount }} reviews)</span>
+        </div>
+
+        <div class="pdp__price-block">
+          <span class="pdp__price">£{{ p.price.toFixed(2) }}</span>
+          @if (p.wasPrice) {
+            <span class="pdp__was">Was £{{ p.wasPrice.toFixed(2) }}</span>
+            <span class="pdp__save">
+              Save £{{ (p.wasPrice - p.price).toFixed(2) }}
+            </span>
+          }
+        </div>
+
+        <p class="pdp__description">{{ p.shortDescription }}</p>
+
+        @if (p.isAvailable) {
+          <p class="pdp__availability pdp__availability--in">✓ In stock</p>
+        } @else {
+          <p class="pdp__availability pdp__availability--out">✗ Out of stock</p>
+        }
+
+        @if (p.isAvailable) {
+          <div class="pdp__add-row">
+            <div class="qty-control">
+              <button type="button" (click)="adjustQty(-1)" [disabled]="quantity() === 1">−</button>
+              <span>{{ quantity() }}</span>
+              <button type="button" (click)="adjustQty(1)" [disabled]="quantity() === 99">+</button>
+            </div>
+            <button class="btn btn--primary pdp__add-btn" type="button"
+              [disabled]="addingToBasket()" (click)="addToBasket()">
+              @if (addedToBasket()) {
+                ✓ Added to trolley
+              } @else if (addingToBasket()) {
+                Adding...
+              } @else {
+                Add to trolley
+              }
+            </button>
+          </div>
+        }
+
+        <button class="btn btn--wishlist" type="button"
+          [disabled]="wishlistLoading()" (click)="toggleWishlist()">
+          @if (inWishlist()) { ♥ Saved to wishlist } @else { ♡ Save to wishlist }
+        </button>
+
+        <!-- Delivery info -->
+        <div class="pdp__delivery-info">
+          <div class="delivery-option">
+            <span class="delivery-option__icon">🚚</span>
+            <div>
+              <strong>Standard delivery</strong>
+              <p>Free on orders over £50, otherwise £3.95</p>
+            </div>
+          </div>
+          <div class="delivery-option">
+            <span class="delivery-option__icon">⚡</span>
+            <div>
+              <strong>Express delivery</strong>
+              <p>£5.95 — order by 6pm for next day</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs: Specs / Delivery -->
+    <div class="pdp__tabs">
+      <button class="pdp__tab" type="button"
+        [class.pdp__tab--active]="activeTab() === 'specs'"
+        (click)="activeTab.set('specs')">Specifications</button>
+      <button class="pdp__tab" type="button"
+        [class.pdp__tab--active]="activeTab() === 'delivery'"
+        (click)="activeTab.set('delivery')">Store availability</button>
+    </div>
+
+    @if (activeTab() === 'specs') {
+      <div class="pdp__specs">
+        @if (p.fullDescription) {
+          <p class="pdp__full-desc">{{ p.fullDescription }}</p>
+        }
+        @if (p.specifications.length > 0) {
+          <table class="spec-table">
+            @for (spec of p.specifications; track spec.name) {
+              <tr>
+                <th>{{ spec.name }}</th>
+                <td>{{ spec.value }}</td>
+              </tr>
+            }
+          </table>
+        }
+      </div>
+    } @else {
+      <div class="pdp__availability-list">
+        @if (p.availability.length === 0) {
+          <p>No store availability data.</p>
+        } @else {
+          @for (store of p.availability; track store.storeId) {
+            <div class="store-row">
+              <div>
+                <strong>{{ store.storeName }}</strong>
+                <span class="store-row__town">{{ store.town }}, {{ store.postcode }}</span>
+              </div>
+              <span [class]="store.quantityAvailable > 0 ? 'badge badge--in' : 'badge badge--out'">
+                {{ store.quantityAvailable > 0 ? 'In stock' : 'Out of stock' }}
+              </span>
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+}

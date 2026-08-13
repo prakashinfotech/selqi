@@ -1,0 +1,122 @@
+:host { display: block; }
+
+.admin-shell {
+  display: flex;
+  align-items: flex-start;
+  min-height: calc(100vh - 120px);
+  background: #f4f6f9;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+  min-width: 220px;
+  background: #1c1c1c;
+  color: #ccc;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 20px 16px;
+  font-weight: 800;
+  font-size: 1rem;
+  color: #fff;
+  border-bottom: 1px solid #333;
+}
+
+.brand-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4f46e5;
+  flex-shrink: 0;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  color: #aaa;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-left: 3px solid transparent;
+  transition: background 150ms, color 150ms;
+
+  svg { flex-shrink: 0; opacity: 0.7; }
+
+  &:hover {
+    background: #2a2a2a;
+    color: #fff;
+    svg { opacity: 1; }
+  }
+
+  &.active {
+    background: #2a2a2a;
+    color: #fff;
+    border-left-color: #4f46e5;
+    svg { opacity: 1; }
+  }
+
+  &--exit {
+    color: #888;
+    font-size: 0.82rem;
+    padding: 8px 20px;
+    border-left-color: transparent !important;
+    margin-top: 4px;
+    &:hover { color: #ccc; }
+  }
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 12px 0 8px;
+  border-top: 1px solid #333;
+}
+
+.user-email {
+  display: block;
+  padding: 0 20px 8px;
+  font-size: 0.75rem;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Content area ────────────────────────────────────────────────────────── */
+.admin-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .admin-shell { flex-direction: column; }
+  .sidebar { width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap; }
+  .sidebar-brand { border-bottom: none; border-right: 1px solid #333; }
+  .sidebar-nav { flex-direction: row; padding: 0; }
+  .sidebar-footer { display: none; }
+}

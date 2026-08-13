@@ -1,0 +1,206 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Stores</h1>
+      <p class="sub">{{ stores().length }} stores across all formats</p>
+    </div>
+    <button class="btn btn--primary" type="button" (click)="openCreate()">+ Add store</button>
+  </div>
+
+  @if (message(); as msg) {
+    <div class="alert alert--{{ msg.type }}">{{ msg.text }}</div>
+  }
+
+  <div class="card">
+    <div class="card-header"><h2>All stores</h2></div>
+    @if (isLoading()) {
+      <p style="padding:24px;color:#767676">Loading stores…</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Store</th>
+              <th>Type</th>
+              <th>Contact</th>
+              <th>Total stock</th>
+              <th>Low stock</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of stores(); track s.id) {
+              <tr>
+                <td>
+                  <span class="cell-main">{{ s.name }}</span>
+                  <span class="cell-sub">{{ s.addressLine1 }}, {{ s.town }} {{ s.postcode }}</span>
+                </td>
+                <td>
+                  <span class="pill {{ typePill(s.storeType) }}">
+                    {{ s.storeType === 'CollectionPoint' ? 'Collection' : s.storeType }}
+                  </span>
+                </td>
+                <td>{{ s.phone ?? '—' }}</td>
+                <td>{{ s.totalStockItems }}</td>
+                <td>
+                  @if (s.lowStockProductCount > 0) {
+                    <span class="pill pill--amber">{{ s.lowStockProductCount }} low</span>
+                  } @else {
+                    <span style="color:#767676">—</span>
+                  }
+                </td>
+                <td>
+                  <span class="pill {{ s.isActive ? 'pill--green' : 'pill--gray' }}">
+                    {{ s.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="actions">
+                  <button class="btn btn--ghost btn--sm" type="button" (click)="openInventory(s)">Stock</button>
+                  <button class="btn btn--ghost btn--sm" type="button" (click)="openEdit(s)">Edit</button>
+                  <button class="btn btn--danger btn--sm" type="button" (click)="deleteStore(s)">Delete</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr class="empty-row"><td colspan="7">No stores found.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- ── Create / Edit Store Modal ──────────────────────────────────────────── -->
+<div class="modal-backdrop" [class.open]="modal() === 'create' || modal() === 'edit'" (click)="closeModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ modal() === 'create' ? 'Add new store' : 'Edit store' }}</h3>
+      <button type="button" (click)="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      @if (detailLoading()) {
+        <p style="color:#767676">Loading…</p>
+      } @else {
+        <div class="form-group">
+          <label>Store name</label>
+          <input type="text" [(ngModel)]="form.name" placeholder="e.g. Central Retail Park" />
+        </div>
+        <div class="form-group">
+          <label>Address line 1</label>
+          <input type="text" [(ngModel)]="form.addressLine1" />
+        </div>
+        <div class="form-group">
+          <label>Address line 2 <span class="optional">(optional)</span></label>
+          <input type="text" [ngModel]="form.addressLine2 ?? ''" (ngModelChange)="form.addressLine2 = $event || null" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Town</label>
+            <input type="text" [(ngModel)]="form.town" />
+          </div>
+          <div class="form-group">
+            <label>Postcode</label>
+            <input type="text" [(ngModel)]="form.postcode" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Phone <span class="optional">(optional)</span></label>
+            <input type="text" [ngModel]="form.phone ?? ''" (ngModelChange)="form.phone = $event || null" />
+          </div>
+          <div class="form-group">
+            <label>Store type</label>
+            <select [(ngModel)]="form.storeType">
+              @for (t of storeTypes; track t) {
+                <option [value]="t">{{ t === 'CollectionPoint' ? 'Collection Point' : t }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Latitude <span class="optional">(optional)</span></label>
+            <input type="number" step="0.0001" [ngModel]="form.latitude" (ngModelChange)="form.latitude = $event ?? null" />
+          </div>
+          <div class="form-group">
+            <label>Longitude <span class="optional">(optional)</span></label>
+            <input type="number" step="0.0001" [ngModel]="form.longitude" (ngModelChange)="form.longitude = $event ?? null" />
+          </div>
+        </div>
+        @if (modal() === 'edit') {
+          <label class="form-check">
+            <input type="checkbox" [(ngModel)]="form.isActive" /> Store is active
+          </label>
+        }
+      }
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--ghost" type="button" (click)="closeModal()">Cancel</button>
+      <button class="btn btn--primary" type="button" (click)="saveStore()" [disabled]="saving() || detailLoading()">
+        {{ saving() ? 'Saving…' : (modal() === 'create' ? 'Create store' : 'Save changes') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Inventory Modal ────────────────────────────────────────────────────── -->
+<div class="modal-backdrop" [class.open]="modal() === 'inventory'" (click)="closeModal()">
+  <div class="modal modal--lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Stock — {{ storeDetail()?.name }}</h3>
+      <button type="button" (click)="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      @if (detailLoading()) {
+        <p style="color:#767676">Loading inventory…</p>
+      } @else if (storeDetail(); as detail) {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Product</th><th>SKU</th><th>Qty</th><th>Threshold</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+              @for (item of detail.inventory; track item.productId) {
+                @if (editingInv?.productId === item.productId) {
+                  <tr class="editing-row">
+                    <td colspan="2"><strong>{{ item.productName }}</strong></td>
+                    <td><input class="qty-input" type="number" min="0" [(ngModel)]="invQty" /></td>
+                    <td><input class="qty-input" type="number" min="0" [(ngModel)]="invThreshold" /></td>
+                    <td></td>
+                    <td class="actions">
+                      <button class="btn btn--primary btn--sm" type="button" (click)="saveInvItem()">Save</button>
+                      <button class="btn btn--ghost btn--sm" type="button" (click)="editingInv = null">Cancel</button>
+                    </td>
+                  </tr>
+                } @else {
+                  <tr>
+                    <td>
+                      <span class="cell-main">{{ item.productName }}</span>
+                    </td>
+                    <td><span class="cell-sub" style="margin:0">{{ item.productSku }}</span></td>
+                    <td [class.low-val]="item.isLowStock">{{ item.quantityAvailable }}</td>
+                    <td>{{ item.lowStockThreshold }}</td>
+                    <td>
+                      @if (item.quantityAvailable === 0) {
+                        <span class="pill pill--red">Out</span>
+                      } @else if (item.isLowStock) {
+                        <span class="pill pill--amber">Low</span>
+                      } @else {
+                        <span class="pill pill--green">OK</span>
+                      }
+                    </td>
+                    <td><button class="btn btn--ghost btn--sm" type="button" (click)="startEditInv(item)">Edit</button></td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--secondary" type="button" (click)="closeModal()">Close</button>
+    </div>
+  </div>
+</div>

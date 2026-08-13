@@ -1,0 +1,26 @@
+@Selqi.Api_HostAddress = http://localhost:5123
+
+GET {{Selqi.Api_HostAddress}}/api/v1/categories
+Accept: application/json
+
+###
+
+GET {{Selqi.Api_HostAddress}}/api/v1/brands
+Accept: application/json
+
+###
+
+GET {{Selqi.Api_HostAddress}}/api/v1/products?category=technology&sort=price-asc&page=1&pageSize=6
+Accept: application/json
+
+###
+
+GET {{Selqi.Api_HostAddress}}/api/v1/products/astra-15-laptop
+Accept: application/json
+
+###
+
+GET {{Selqi.Api_HostAddress}}/api/v1/products/00000000-0000-0000-0000-000000000301/availability
+Accept: application/json
+
+###

@@ -1,0 +1,101 @@
+<div class="basket-page">
+  <div class="container">
+    <h1 class="basket-page__title">Your trolley</h1>
+
+    @if (!auth.isAuthenticated()) {
+      <div class="basket-empty">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+          <circle cx="40" cy="40" r="38" fill="#f5f5f5" stroke="#e8e8e8" stroke-width="2"/>
+          <path d="M22 26h6l6 24h18l4-16H34" stroke="#b0b0b0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="38" cy="54" r="2" fill="#b0b0b0"/>
+          <circle cx="50" cy="54" r="2" fill="#b0b0b0"/>
+        </svg>
+        <h2>Sign in to view your trolley</h2>
+        <p>Your saved items will appear here once you sign in.</p>
+        <a class="btn btn--primary" [routerLink]="['/login']" [queryParams]="{ returnUrl: '/basket' }">Sign in</a>
+        <a routerLink="/products">Continue shopping</a>
+      </div>
+    } @else if (!basket() || basket()!.items.length === 0) {
+      <div class="basket-empty">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+          <circle cx="40" cy="40" r="38" fill="#f5f5f5" stroke="#e8e8e8" stroke-width="2"/>
+          <path d="M22 26h6l6 24h18l4-16H34" stroke="#b0b0b0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="38" cy="54" r="2" fill="#b0b0b0"/>
+          <circle cx="50" cy="54" r="2" fill="#b0b0b0"/>
+        </svg>
+        <h2>Your trolley is empty</h2>
+        <p>Explore our great range and add items to your trolley.</p>
+        <a class="btn btn--primary" routerLink="/products">Continue shopping</a>
+      </div>
+    } @else {
+      <div class="basket-layout">
+        <!-- Items -->
+        <div class="basket-items">
+          @for (item of basket()!.items; track item.id) {
+            <div class="basket-item">
+              <div class="basket-item__img">
+                @if (item.productImageUrl) {
+                  <img [src]="item.productImageUrl" [alt]="item.productName">
+                } @else {
+                  <div class="basket-item__img-placeholder img-unavailable">
+                    No Image<br>available
+                  </div>
+                }
+              </div>
+              <div class="basket-item__info">
+                <a class="basket-item__name" [routerLink]="['/product', item.productSlug]">
+                  {{ item.productName }}
+                </a>
+                <p class="basket-item__unit-price">£{{ item.unitPrice.toFixed(2) }} each</p>
+              </div>
+              <div class="basket-item__controls">
+                <div class="qty-control">
+                  <button type="button" (click)="updateQty(item.id, item.quantity - 1)">−</button>
+                  <span>{{ item.quantity }}</span>
+                  <button type="button" (click)="updateQty(item.id, item.quantity + 1)" [disabled]="item.quantity >= 99">+</button>
+                </div>
+                <button class="basket-item__remove" type="button" (click)="removeItem(item.id)">
+                  Remove
+                </button>
+              </div>
+              <div class="basket-item__total">
+                £{{ item.lineTotal.toFixed(2) }}
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Summary -->
+        <div class="basket-summary">
+          <h2 class="basket-summary__title">Order summary</h2>
+
+          <div class="basket-summary__row">
+            <span>Subtotal ({{ basket()!.itemCount }} items)</span>
+            <span>£{{ basket()!.subTotal.toFixed(2) }}</span>
+          </div>
+          <div class="basket-summary__row">
+            <span>Standard delivery</span>
+            @if (deliveryCost() === 0) {
+              <span class="basket-summary__free">FREE</span>
+            } @else {
+              <span>£{{ deliveryCost().toFixed(2) }}</span>
+            }
+          </div>
+          @if (deliveryCost() > 0) {
+            <p class="basket-summary__hint">Add £{{ (50 - basket()!.subTotal).toFixed(2) }} more for free delivery</p>
+          }
+          <div class="basket-summary__divider"></div>
+          <div class="basket-summary__row basket-summary__row--total">
+            <span>Total</span>
+            <span>£{{ total().toFixed(2) }}</span>
+          </div>
+
+          <button class="btn btn--primary btn--full" type="button" (click)="checkout()">
+            Checkout securely
+          </button>
+          <a class="basket-summary__continue" routerLink="/">Continue shopping</a>
+        </div>
+      </div>
+    }
+  </div>
+</div>

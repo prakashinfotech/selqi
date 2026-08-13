@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/backend/">
+    <Project Path="src/backend/Selqi.Api/Selqi.Api.csproj" />
+    <Project Path="src/backend/Selqi.Application/Selqi.Application.csproj" />
+    <Project Path="src/backend/Selqi.Domain/Selqi.Domain.csproj" />
+    <Project Path="src/backend/Selqi.Infrastructure/Selqi.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/backend/">
+    <Project Path="tests/backend/Selqi.Application.Tests/Selqi.Application.Tests.csproj" />
+  </Folder>
+</Solution>

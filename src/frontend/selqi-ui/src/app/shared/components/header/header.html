@@ -1,0 +1,255 @@
+<header class="site-header">
+
+  <!-- Top utility bar -->
+  <div class="top-bar">
+    <div class="container">
+      <nav class="top-bar__nav" aria-label="Utility navigation">
+        <a routerLink="/orders" class="top-bar__link">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Track Order
+        </a>
+        <button type="button" class="top-bar__link top-bar__link--btn"
+          [class.top-bar__link--active]="activePanel() === 'returns'"
+          (click)="togglePanel('returns')">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+          Returns
+          <svg class="chevron" [class.chevron--up]="activePanel() === 'returns'" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <a routerLink="/stores" class="top-bar__link">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Stores
+        </a>
+        <button type="button" class="top-bar__link top-bar__link--btn"
+          [class.top-bar__link--active]="activePanel() === 'help'"
+          (click)="togglePanel('help')">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Help
+          <svg class="chevron" [class.chevron--up]="activePanel() === 'help'" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Main header -->
+  <div class="header-main">
+    <div class="container">
+      <div class="header-main__row">
+
+        <!-- Logo -->
+        <a routerLink="/" class="header-logo" aria-label="Selqi home">
+          <img src="selqi-logo.svg" alt="" width="62" height="62">
+        </a>
+
+        <!-- Primary nav -->
+        <nav class="primary-nav" aria-label="Primary navigation">
+          <button class="nav-btn" [class.nav-btn--active]="activePanel() === 'shop'" type="button"
+            [attr.aria-expanded]="activePanel() === 'shop'"
+            (click)="togglePanel('shop')">
+            Shop
+            <svg class="chevron" [class.chevron--up]="activePanel() === 'shop'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <button class="nav-btn" [class.nav-btn--active]="activePanel() === 'trending'" type="button"
+            [attr.aria-expanded]="activePanel() === 'trending'"
+            (click)="togglePanel('trending')">
+            Trending
+            <svg class="chevron" [class.chevron--up]="activePanel() === 'trending'" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <button type="button" class="nav-promo-link"
+            (click)="navigateTo('/products', { search: 'football' })">
+            ⚽ Summer of football
+          </button>
+        </nav>
+
+        <!-- Search -->
+        <div class="header-search">
+          <form class="search-form" (submit)="onSearch($event)" role="search">
+            <label for="site-search" class="visually-hidden">Search Selqi</label>
+            <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              id="site-search"
+              type="search"
+              class="search-input"
+              placeholder="Search products or brands"
+              aria-describedby="site-search-hint"
+              autocomplete="off"
+            />
+            <button type="submit" class="search-btn">Search</button>
+          </form>
+          <span id="site-search-hint" class="visually-hidden">
+            Use up and down arrows to review and enter to select.
+          </span>
+        </div>
+
+        <!-- Ask Trevor -->
+        <button class="ask-trevor" type="button" aria-label="Ask Trevor AI assistant">
+          <span class="ask-trevor__avatar" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+          </span>
+          <span>Ask Trevor</span>
+        </button>
+
+        <!-- Account actions -->
+        <nav class="header-actions" aria-label="Account and basket">
+          @if (auth.isAuthenticated()) {
+            <div class="header-action header-action--account-menu">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span class="action-label">{{ auth.currentUser()?.firstName }}</span>
+              <div class="account-dropdown">
+                @if (!auth.isAdmin()) {
+                  <a class="account-dropdown__item" routerLink="/orders">My orders</a>
+                  <a class="account-dropdown__item" routerLink="/wishlist">Wishlist</a>
+                }
+                @if (auth.isAdmin()) {
+                  <a class="account-dropdown__item" routerLink="/admin">Admin dashboard</a>
+                }
+                <button class="account-dropdown__item account-dropdown__item--logout" type="button" (click)="logout()">Sign out</button>
+              </div>
+            </div>
+          } @else {
+            <a class="header-action" routerLink="/login">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span class="action-label">Sign in</span>
+            </a>
+          }
+
+          @if (!auth.isAdmin()) {
+            <a class="header-action" routerLink="/wishlist">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <span class="action-label">Wishlist</span>
+            </a>
+          }
+
+          <a routerLink="/basket" class="header-action header-action--trolley">
+            <span class="trolley-wrapper">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              @if (basketCount() > 0) {
+                <span class="trolley-count">{{ basketCount() }}</span>
+              }
+            </span>
+            <span class="action-label">Trolley</span>
+          </a>
+        </nav>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Panels ─────────────────────────────────────────────────────────────── -->
+
+  <!-- Shop mega-dropdown -->
+  @if (activePanel() === 'shop') {
+    <div class="panel-overlay" role="dialog" aria-label="Shop by category">
+      <div class="container">
+        <div class="mega-dropdown">
+          <div class="mega-dropdown__grid">
+            @for (cat of topCategories(); track cat.id) {
+              <button type="button" class="mega-cat" (click)="navigateTo('/products', { search: cat.name })">
+                <span class="mega-cat__name">{{ cat.name }}</span>
+              </button>
+            }
+          </div>
+          <div class="mega-dropdown__footer">
+            <button type="button" class="mega-dropdown__all" (click)="navigateTo('/products', {})">
+              Browse all products →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Trending dropdown -->
+  @if (activePanel() === 'trending') {
+    <div class="panel-overlay" role="dialog" aria-label="Trending">
+      <div class="container">
+        <div class="trending-grid">
+          @for (section of trendingSections; track section.heading) {
+            <div class="trending-col">
+              <h3 class="trending-col__heading">{{ section.heading }}</h3>
+              @for (link of section.links; track link.label) {
+                <button type="button" class="trending-link" (click)="navigateTo(link.route, link.params)">
+                  {{ link.label }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Returns panel -->
+  @if (activePanel() === 'returns') {
+    <div class="panel-overlay panel-overlay--utility" role="dialog" aria-label="Returns information">
+      <div class="container">
+        <div class="utility-panel">
+          <h2 class="utility-panel__title">Returns &amp; Refunds</h2>
+          <div class="faq-list">
+            @for (item of returnsInfo; track item.q; let i = $index) {
+              <div class="faq-item" [class.faq-item--open]="isFaqOpen(i)">
+                <button type="button" class="faq-question" (click)="toggleFaq(i)" [attr.aria-expanded]="isFaqOpen(i)">
+                  <span>{{ item.q }}</span>
+                  <svg class="chevron" [class.chevron--up]="isFaqOpen(i)" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                @if (isFaqOpen(i)) {
+                  <div class="faq-answer">{{ item.a }}</div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Help panel -->
+  @if (activePanel() === 'help') {
+    <div class="panel-overlay panel-overlay--utility" role="dialog" aria-label="Help and Support">
+      <div class="container">
+        <div class="utility-panel">
+          <h2 class="utility-panel__title">Help &amp; Support</h2>
+          <div class="faq-list">
+            @for (item of helpItems; track item.q; let i = $index) {
+              <div class="faq-item" [class.faq-item--open]="isFaqOpen(i)">
+                <button type="button" class="faq-question" (click)="toggleFaq(i)" [attr.aria-expanded]="isFaqOpen(i)">
+                  <span>{{ item.q }}</span>
+                  <svg class="chevron" [class.chevron--up]="isFaqOpen(i)" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                @if (isFaqOpen(i)) {
+                  <div class="faq-answer">{{ item.a }}</div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Benefits bar -->
+  <div class="benefits-bar">
+    <div class="container">
+      <ul class="benefits-bar__list">
+        <li class="benefit">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Selqi Pay Credit Available
+        </li>
+        <li class="benefit-sep" aria-hidden="true"></li>
+        <li class="benefit">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          Shop our latest offers
+        </li>
+        <li class="benefit-sep" aria-hidden="true"></li>
+        <li class="benefit">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          A year of fast delivery with Selqi Plus
+        </li>
+      </ul>
+    </div>
+  </div>
+
+</header>

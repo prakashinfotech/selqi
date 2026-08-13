@@ -1,0 +1,327 @@
+<div class="home-page">
+
+  <section class="quick-strip" aria-label="Shop by category">
+    <div class="quick-strip__wrapper">
+      @if (canScrollLeft()) {
+        <button type="button" class="quick-strip__arrow quick-strip__arrow--left"
+          aria-label="Scroll categories left" title="Scroll categories left"
+          (click)="scrollQuick(-320)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+      }
+      <div class="quick-strip__scroll" #quickScroll (scroll)="onQuickScroll()">
+        <a routerLink="/products" class="quick-tile quick-tile--pay">
+          <span class="quick-tile__icon">0%</span>
+          <span class="quick-tile__label">Demo finance<br>available</span>
+        </a>
+        <a routerLink="/products" [queryParams]="{ sort: 'rating' }" class="quick-tile quick-tile--sun">
+          <span class="quick-tile__icon">TOP</span>
+          <span class="quick-tile__label">Top rated<br>picks</span>
+        </a>
+        <a routerLink="/products" [queryParams]="{ availableOnly: true }" class="quick-tile quick-tile--deals">
+          <span class="quick-tile__icon">DEAL</span>
+          <span class="quick-tile__label">Ready to<br>collect</span>
+        </a>
+
+        @for (cat of catalog.categories(); track cat.id) {
+          <a [routerLink]="['/category', cat.slug]" class="quick-tile">
+            <span class="quick-tile__icon quick-tile__icon--category">
+              @if (cat.imageUrl) {
+                <img [src]="cat.imageUrl" [alt]="cat.name" [title]="cat.name" loading="lazy">
+              } @else {
+                <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="10" y="10" width="28" height="28" rx="4"/><path d="M17 22h14M17 29h10"/></svg>
+              }
+            </span>
+            <span class="quick-tile__label">{{ cat.name }}</span>
+          </a>
+        }
+      </div>
+      @if (canScrollRight()) {
+        <button type="button" class="quick-strip__arrow quick-strip__arrow--right"
+          aria-label="Scroll categories right" title="Scroll categories right"
+          (click)="scrollQuick(320)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      }
+    </div>
+  </section>
+
+  <section class="hero-slider" aria-label="Featured offers" aria-roledescription="carousel">
+    <div class="hero-slider__container">
+      <div class="hero-slider__viewport">
+        <div class="hero-slider__track" [style.transform]="'translateX(-' + currentSlide() * 100 + '%)'">
+          @for (slide of slides; track slide.id; let i = $index) {
+            <article class="hero-slide" [class]="'hero-slide hero-slide--' + slide.theme"
+              role="group" aria-roledescription="slide"
+              [attr.aria-label]="'Slide ' + (i + 1) + ' of ' + slides.length">
+              <div class="hero-slide__inner">
+                <div class="hero-slide__copy">
+                  @if (slide.chip) {
+                    <span class="deal-chip">{{ slide.chip }}</span>
+                  }
+                  <h1>{{ slide.heading }}</h1>
+                  <p>{{ slide.body }}</p>
+                  <a [routerLink]="slide.ctaLink" class="hero-slide__cta">{{ slide.ctaLabel }}</a>
+                </div>
+                <div class="hero-slide__media" aria-hidden="true">
+                  <img [src]="slide.imageUrl" [alt]="slide.imageAlt" [title]="slide.imageAlt">
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      </div>
+
+      <div class="carousel-controls" aria-label="Slider navigation">
+      <button type="button" class="carousel-arrow" aria-label="Previous slide" (click)="prev()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      @for (slide of slides; track slide.id; let i = $index) {
+        <button type="button"
+          class="carousel-dot"
+          [class.carousel-dot--active]="currentSlide() === i"
+          [attr.aria-label]="'Go to slide ' + (i + 1)"
+          [title]="'Go to slide ' + (i + 1)"
+          [attr.aria-current]="currentSlide() === i ? 'true' : null"
+          (click)="goTo(i)">
+        </button>
+      }
+      <button type="button" class="carousel-arrow" aria-label="Next slide" (click)="next()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <button type="button" class="carousel-pause" (click)="togglePause()"
+        [attr.aria-label]="isPaused() ? 'Play carousel' : 'Pause carousel'"
+        [title]="isPaused() ? 'Play carousel' : 'Pause carousel'">
+        {{ isPaused() ? 'Play' : 'Pause' }}
+      </button>
+    </div>
+    </div>
+  </section>
+
+  <section class="credit-strip" aria-label="Payment information">
+    <div class="credit-strip__inner">
+      <span class="credit-strip__logo">Selqi Pay</span>
+      <p><strong>Demo credit option.</strong> Use the checkout prototype to review delivery and mock payment flows.</p>
+      <a routerLink="/checkout">Learn more</a>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="trending-heading">
+    <div class="container">
+      <h2 class="section-title" id="trending-heading">Trending now</h2>
+      <div class="trending-grid">
+        <a routerLink="/category/home" class="trend-card trend-card--furniture">
+          <span class="deal-chip">save</span>
+          <h3>Refresh your rooms for less</h3>
+          <p>Selected demo furniture, storage and lighting picks.</p>
+          <span>Shop home</span>
+        </a>
+        <a routerLink="/category/technology" class="trend-card trend-card--screen">
+          <h3>Get match-day ready</h3>
+          <p>TV, audio and tablet picks for the next big event.</p>
+          <span>Shop screens</span>
+        </a>
+        <a routerLink="/products" class="trend-card trend-card--deals">
+          <h3>A-mazing demo deals</h3>
+          <p>Browse all seeded products with quick add-to-trolley paths.</p>
+          <span>See all deals</span>
+        </a>
+        <a routerLink="/category/appliances" class="trend-card trend-card--kitchen">
+          <h3>Kitchen counter heroes</h3>
+          <p>Air fryers, small appliances and useful everyday kit.</p>
+          <span>Shop appliances</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--soft" aria-labelledby="popular-heading">
+    <div class="container">
+      <div class="section-heading-row">
+        <h2 class="section-title" id="popular-heading">Popular products on Selqi</h2>
+        <a routerLink="/products">See all deals</a>
+      </div>
+
+      @if (!productsLoaded()) {
+        <div class="popular-row" aria-label="Loading popular products">
+          @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+            <div class="mini-product mini-product--skeleton"></div>
+          }
+        </div>
+      } @else if (popularProducts().length === 0) {
+        <p class="empty-state">Products could not be loaded. Make sure the API is running on port 5123.</p>
+      } @else {
+        <div class="popular-row">
+          @for (product of popularProducts(); track product.id) {
+            <a [routerLink]="['/product', product.slug]" class="mini-product">
+              <div class="mini-product__visual">
+                @if (product.primaryImageUrl) {
+                  <img [src]="product.primaryImageUrl" [alt]="product.name" [title]="product.name" loading="lazy">
+                } @else {
+                  <span class="img-unavailable">No Image<br>available</span>
+                }
+              </div>
+              <span class="mini-product__brand">{{ product.brandName }}</span>
+              <strong>{{ product.name }}</strong>
+              <span class="mini-product__rating">{{ product.rating.toFixed(1) }} stars ({{ product.reviewCount }})</span>
+              <span class="mini-product__price">&pound;{{ product.price.toFixed(2) }}</span>
+              @if (discount(product); as pct) {
+                <span class="mini-product__save">Save {{ pct }}%</span>
+              }
+            </a>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="section ai-section" aria-labelledby="ai-heading">
+    <div class="container">
+      <div class="section-heading-row">
+        <h2 class="section-title" id="ai-heading">
+          <span class="ai-badge">AI</span> Picked for you
+        </h2>
+        <span class="ai-poweredby">Powered by Gemini</span>
+      </div>
+
+      @if (!suggestionsLoaded()) {
+        <div class="popular-row" aria-label="Loading AI suggestions">
+          @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+            <div class="mini-product mini-product--skeleton"></div>
+          }
+        </div>
+      } @else if (suggestionsError() || aiSuggestions().length === 0) {
+        <p class="empty-state">AI suggestions unavailable right now. Check back soon.</p>
+      } @else {
+        <div class="popular-row">
+          @for (s of aiSuggestions(); track s.product.id) {
+            <a [routerLink]="['/product', s.product.slug]" class="mini-product ai-product">
+              <div class="mini-product__visual">
+                @if (s.product.primaryImageUrl) {
+                  <img [src]="s.product.primaryImageUrl" [alt]="s.product.name" [title]="s.product.name" loading="lazy">
+                } @else {
+                  <span class="img-unavailable">No Image<br>available</span>
+                }
+              </div>
+              <span class="mini-product__brand">{{ s.product.brandName }}</span>
+              <strong>{{ s.product.name }}</strong>
+              <span class="ai-reason">{{ s.reason }}</span>
+              <span class="mini-product__price">&pound;{{ s.product.price.toFixed(2) }}</span>
+              @if (discount(s.product); as pct) {
+                <span class="mini-product__save">Save {{ pct }}%</span>
+              }
+            </a>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="spring-heading">
+    <div class="container">
+      <h2 class="section-title" id="spring-heading">Spring deals</h2>
+      <div class="deal-grid">
+        <a routerLink="/category/garden" class="deal-card deal-card--garden">
+          <h3>Garden, DIY and decorating</h3>
+          <p>Refresh indoor and outdoor spaces with seasonal picks.</p>
+          <span>Shop now</span>
+        </a>
+        <a routerLink="/category/toys" class="deal-card deal-card--toys">
+          <h3>Toys for bright afternoons</h3>
+          <p>Creative sets, games and play ideas from the demo catalog.</p>
+          <span>Shop toys</span>
+        </a>
+        <a routerLink="/category/sports" class="deal-card deal-card--sports">
+          <h3>Set fitness in motion</h3>
+          <p>Exercise bikes and active lifestyle products.</p>
+          <span>Shop sports</span>
+        </a>
+        <a routerLink="/category/baby" class="deal-card deal-card--baby">
+          <h3>Trips big and small</h3>
+          <p>Nursery and travel essentials for family routines.</p>
+          <span>Shop baby</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--soft" aria-labelledby="brands-heading">
+    <div class="container">
+      <h2 class="section-title" id="brands-heading">Explore our brands</h2>
+      <div class="brand-row">
+        <a routerLink="/products" [queryParams]="{ search: 'Astra' }">Astra</a>
+        <a routerLink="/products" [queryParams]="{ search: 'Homekind' }">Homekind</a>
+        <a routerLink="/products" [queryParams]="{ search: 'Kestral' }">Kestral</a>
+        <a routerLink="/products" [queryParams]="{ search: 'Playwell' }">Playwell</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="more-heading">
+    <div class="container">
+      <h2 class="section-title" id="more-heading">There's even more to Selqi</h2>
+      <div class="service-grid">
+        <a routerLink="/checkout" class="service-card">
+          <h3>Ways to pay</h3>
+          <p>Review address, delivery and mock payment steps in checkout.</p>
+        </a>
+        <a routerLink="/products" class="service-card">
+          <h3>Same day flow</h3>
+          <p>Use inventory availability to find products ready for collection.</p>
+        </a>
+        <a routerLink="/orders" class="service-card">
+          <h3>Track orders</h3>
+          <p>Signed-in users can view placed orders and confirmations.</p>
+        </a>
+        <a routerLink="/wishlist" class="service-card">
+          <h3>Wishlist</h3>
+          <p>Save products for later once logged in.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="pay-feature" aria-label="Flexible ways to pay">
+    <div class="container pay-feature__inner">
+      <div>
+        <h2>Flexible ways to pay for the things you need</h2>
+        <p>With the demo checkout, mock payment keeps the flow safe while still showing the complete customer journey.</p>
+        <a routerLink="/basket">Open trolley</a>
+      </div>
+      <div class="pay-feature__card" aria-hidden="true">
+        <span>Selqi Pay</span>
+        <strong>34.9% APR representative</strong>
+        <small>Demo content only</small>
+      </div>
+    </div>
+  </section>
+
+  <section class="store-finder" aria-label="Find your nearest store">
+    <div class="container store-finder__inner">
+      <h2>Find your nearest store</h2>
+      <form class="store-finder__form">
+        <label for="store-search">My town or postcode is...</label>
+        <input id="store-search" type="text" placeholder="Town or postcode">
+        <button type="button">Let's go</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="editorial" aria-labelledby="reset-heading">
+    <div class="container editorial__grid">
+      <article>
+        <h2 id="reset-heading">Get set for a spring reset</h2>
+        <p>Freshen up your space with storage, cleaning, garden and home products from the seeded demo range.</p>
+      </article>
+      <article>
+        <h3>Home refresh</h3>
+        <p>Use compact furniture, lighting and useful appliances to create a cleaner shopping demo path.</p>
+      </article>
+      <article>
+        <h3>Play time</h3>
+        <p>Browse toys and creative sets with product detail, rating, availability and add-to-trolley states.</p>
+      </article>
+    </div>
+  </section>
+
+</div>

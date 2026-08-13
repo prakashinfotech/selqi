@@ -1,0 +1,324 @@
+<div class="catalog">
+  <div class="container">
+    <h1 class="catalog__heading">{{ categoryName() }}</h1>
+
+    <nav class="collection-nav" aria-label="Shop by category">
+      @if (activeTopCategory()?.subCategories?.length) {
+        <!-- "All [Category]" entry that shows all products in the parent -->
+        <a class="collection-link"
+           [class.collection-link--active]="categorySlug === activeTopCategory()!.slug"
+           [routerLink]="['/category', activeTopCategory()!.slug]">
+          <span class="collection-link__bubble">
+            @if (activeTopCategory()!.imageUrl) {
+              <img [src]="activeTopCategory()!.imageUrl" [alt]="activeTopCategory()!.name" [title]="activeTopCategory()!.name" loading="lazy">
+            }
+          </span>
+          <span class="collection-link__label">All {{ activeTopCategory()!.name }}</span>
+        </a>
+        <!-- Sub-category bubbles with images -->
+        @for (sub of activeTopCategory()!.subCategories; track sub.id) {
+          <a class="collection-link"
+             [class.collection-link--active]="categorySlug === sub.slug"
+             [routerLink]="['/category', sub.slug]">
+            <span class="collection-link__bubble">
+              @if (sub.imageUrl) {
+                <img [src]="sub.imageUrl" [alt]="sub.name" [title]="sub.name" loading="lazy">
+              }
+            </span>
+            <span class="collection-link__label">{{ sub.name }}</span>
+          </a>
+        }
+      } @else {
+        <!-- No active category — show all top-level categories -->
+        @for (cat of catalogSvc.categories(); track cat.id) {
+          <a class="collection-link"
+             [class.collection-link--active]="activeTopCategory()?.slug === cat.slug"
+             [routerLink]="['/category', cat.slug]">
+            <span class="collection-link__bubble">
+              @if (cat.imageUrl) {
+                <img [src]="cat.imageUrl" [alt]="cat.name" [title]="cat.name" loading="lazy">
+              }
+            </span>
+            <span class="collection-link__label">{{ cat.name }}</span>
+          </a>
+        }
+      }
+    </nav>
+
+    <section class="toolbar" aria-label="Product sorting and filters">
+      <p class="toolbar__label">Sort by</p>
+
+      <div class="toolbar__row">
+        <label class="select-control" for="catalog-sort">
+          <span class="sr-only">Sort products</span>
+          <select id="catalog-sort" [(ngModel)]="sort" (ngModelChange)="setSort($event)">
+            @for (opt of sortOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </label>
+
+        <button
+          class="tool-button"
+          [class.tool-button--active]="!!categorySlug"
+          type="button"
+          (click)="openDrawerOnSection('category')">
+          {{ categorySlug ? categoryName() : 'Category' }}
+        </button>
+
+        <button
+          class="tool-button"
+          [class.tool-button--active]="sort === 'new'"
+          type="button"
+          (click)="showNew()">
+          New
+        </button>
+
+        <button
+          class="tool-button"
+          [class.tool-button--active]="offersOnly"
+          type="button"
+          (click)="toggleOffers()">
+          Offers & Clearance
+        </button>
+
+        <button
+          class="tool-button"
+          [class.tool-button--active]="!!brandSlug"
+          type="button"
+          (click)="openDrawerOnSection('brands')">
+          {{ selectedBrandName() }}
+        </button>
+
+        <button
+          class="tool-button tool-button--filters"
+          [class.tool-button--active]="openPanel() !== null || hasActiveFilters()"
+          type="button"
+          (click)="openDrawerAll()"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="openPanel() !== null">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h10M18 7h2M4 17h2M10 17h10M8 5v4M16 15v4"/>
+          </svg>
+          All filters
+        </button>
+      </div>
+    </section>
+
+    <section class="availability-bar" aria-label="Collection and delivery availability">
+      <p>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 22s7-5.2 7-12a7 7 0 0 0-14 0c0 6.8 7 12 7 12Z"/>
+          <circle cx="12" cy="10" r="2.5"/>
+        </svg>
+        All collection and delivery for <a href="#">BR6 6BG within 10 miles</a>
+      </p>
+      @if (!loading()) {
+        <span>{{ totalItems() }} products</span>
+      }
+    </section>
+
+    @if (loading()) {
+      <div class="product-grid">
+        @for (_ of [1,2,3,4,5,6,7,8,9,10]; track _) {
+          <div class="product-card product-card--skeleton">
+            <div class="product-card__visual"></div>
+            <div class="skeleton-line skeleton-line--label"></div>
+          </div>
+        }
+      </div>
+    } @else if (products().length === 0) {
+      <div class="catalog__empty">
+        <p>No products found. Try adjusting your filters.</p>
+        <button class="btn btn--primary" type="button" (click)="clearFilters()">Clear filters</button>
+      </div>
+    } @else {
+      <div class="product-grid">
+        @for (product of products(); track product.id) {
+          <a class="product-card" [routerLink]="['/product', product.slug]">
+            <div class="product-card__visual" [class]="'product-card__visual product-card__visual--' + product.categorySlug">
+              @if (imageAvailable(product)) {
+                <img
+                  [src]="product.primaryImageUrl"
+                  [alt]="product.name"
+                  [title]="product.name"
+                  loading="lazy"
+                  (error)="markImageFailed(product.id)">
+              } @else {
+                <span class="img-unavailable">No Image<br>available</span>
+              }
+            </div>
+            <span class="product-card__badge" [class]="'product-card__badge product-card__badge--' + badgeTone(product)">
+              {{ badgeText(product) }}
+            </span>
+            <p class="product-card__brand">{{ product.brandName }}</p>
+            <h2>{{ product.name }}</h2>
+            <p class="product-card__price">&pound;{{ product.price.toFixed(2) }}</p>
+          </a>
+        }
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button class="pagination__btn" type="button"
+            [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+            Prev
+          </button>
+          @for (page of pages(); track page) {
+            <button class="pagination__btn"
+              [class.pagination__btn--active]="page === currentPage"
+              type="button" (click)="goToPage(page)">
+              {{ page }}
+            </button>
+          }
+          <button class="pagination__btn" type="button"
+            [disabled]="currentPage === totalPages()" (click)="goToPage(currentPage + 1)">
+            Next
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+@if (openPanel() === 'filters') {
+  <div class="filter-backdrop" (click)="closeDrawer()"></div>
+}
+
+<aside
+  class="filter-drawer"
+  [class.filter-drawer--open]="openPanel() === 'filters'"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Filters">
+
+  <div class="filter-drawer__header">
+    <h2 class="filter-drawer__title">Filters</h2>
+    <button type="button" class="filter-drawer__close" (click)="closeDrawer()" aria-label="Close filters">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="filter-drawer__body">
+
+    <!-- Search -->
+    <div class="filter-section" [class.filter-section--collapsed]="isSectionCollapsed('search')">
+      <button class="filter-section__toggle" type="button" (click)="toggleSection('search')">
+        <span>Search</span>
+        <svg class="filter-section__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 15l-6-6-6 6"/>
+        </svg>
+      </button>
+      <div class="filter-section__content">
+        <input
+          class="filter-search"
+          type="text"
+          [(ngModel)]="search"
+          placeholder="Search products"
+          (keyup.enter)="applyFilters()">
+      </div>
+    </div>
+
+    <!-- Category -->
+    <div class="filter-section" [class.filter-section--collapsed]="isSectionCollapsed('category')">
+      <button class="filter-section__toggle filter-section__toggle--blue" type="button" (click)="toggleSection('category')">
+        <span>Category</span>
+        <svg class="filter-section__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 15l-6-6-6 6"/>
+        </svg>
+      </button>
+      <div class="filter-section__content">
+        <button type="button" class="filter-list-item" [class.filter-list-item--active]="!categorySlug" (click)="selectCategory('')">
+          All categories
+        </button>
+        @for (cat of visibleCategories(); track cat.id) {
+          <button type="button" class="filter-list-item" [class.filter-list-item--active]="cat.slug === categorySlug" (click)="selectCategory(cat.slug)">
+            {{ cat.name }}
+          </button>
+        }
+        @if (catalogSvc.categories().length > 4) {
+          <button type="button" class="filter-show-more" (click)="toggleShowMoreCategories()">
+            {{ showAllCategories() ? 'Show less' : 'Show more' }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Brands -->
+    <div class="filter-section" [class.filter-section--collapsed]="isSectionCollapsed('brands')">
+      <button class="filter-section__toggle" type="button" (click)="toggleSection('brands')">
+        <span>Brands</span>
+        <svg class="filter-section__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 15l-6-6-6 6"/>
+        </svg>
+      </button>
+      <div class="filter-section__content">
+        <div class="brand-chips">
+          @for (brand of visibleBrands(); track brand.id) {
+            <button type="button" class="brand-chip" [class.brand-chip--active]="brandSlug === brand.slug" (click)="toggleBrandChip(brand.slug)">
+              {{ brand.name }}
+            </button>
+          }
+        </div>
+        @if (catalogSvc.brands().length > 8) {
+          <button type="button" class="filter-show-more" (click)="toggleShowMoreBrands()">
+            {{ showAllBrands() ? 'Show less' : 'Show more' }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Price -->
+    <div class="filter-section" [class.filter-section--collapsed]="isSectionCollapsed('price')">
+      <button class="filter-section__toggle" type="button" (click)="toggleSection('price')">
+        <span>Price</span>
+        <svg class="filter-section__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 15l-6-6-6 6"/>
+        </svg>
+      </button>
+      <div class="filter-section__content">
+        <div class="drawer-price-range">
+          <label class="drawer-price-label">
+            <span>Min £</span>
+            <input type="number" [(ngModel)]="minPrice" min="0" placeholder="0">
+          </label>
+          <label class="drawer-price-label">
+            <span>Max £</span>
+            <input type="number" [(ngModel)]="maxPrice" min="0" placeholder="Any">
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Options -->
+    <div class="filter-section" [class.filter-section--collapsed]="isSectionCollapsed('options')">
+      <button class="filter-section__toggle filter-section__toggle--teal" type="button" (click)="toggleSection('options')">
+        <span>Options</span>
+        <svg class="filter-section__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M18 15l-6-6-6 6"/>
+        </svg>
+      </button>
+      <div class="filter-section__content">
+        <label class="drawer-checkbox">
+          <input type="checkbox" [(ngModel)]="availableOnly">
+          <span>Ready to collect</span>
+        </label>
+        <label class="drawer-checkbox">
+          <input type="checkbox" [(ngModel)]="offersOnly">
+          <span>Offers only</span>
+        </label>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="filter-drawer__footer">
+    <button type="button" class="filter-drawer__clear" (click)="clearFilters()">Clear all</button>
+    <button type="button" class="filter-drawer__apply" (click)="applyFilters()">
+      View {{ totalItems() }} items
+    </button>
+  </div>
+
+</aside>

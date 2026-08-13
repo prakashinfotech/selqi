@@ -1,0 +1,130 @@
+@if (loading()) {
+  <div class="container confirmation-loading">
+    <div class="skeleton-line skeleton-line--xl"></div>
+    <div class="skeleton-line skeleton-line--lg"></div>
+  </div>
+} @else if (!order()) {
+  <div class="container confirmation-error">
+    <p>Order not found.</p>
+    <a routerLink="/orders">View my orders</a>
+  </div>
+} @else {
+  @let o = order()!;
+  <div class="container">
+    <div class="confirmation">
+
+      <!-- Banner -->
+      <div class="confirmation__banner" [class.confirmation__banner--cancelled]="isCancelled()">
+        <div class="confirmation__icon">
+          @if (isCancelled()) { ✕ } @else { ✓ }
+        </div>
+        <h1>{{ banner().heading }}</h1>
+        <p>{{ banner().sub }}</p>
+        <p class="confirmation__number">Order number: <strong>{{ o.orderNumber }}</strong></p>
+      </div>
+
+      <!-- Status tracking pipeline -->
+      @if (!isCancelled()) {
+        <div class="tracking-card">
+          <h2 class="tracking-card__title">Order tracking</h2>
+          <div class="tracking-steps">
+            @for (step of statusSteps; track step; let i = $index) {
+              @let state = stepState(step);
+              <div class="tracking-step" [attr.data-state]="state">
+                <div class="tracking-step__bubble">
+                  @if (state === 'done') {
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                      <path d="M2 7l3.5 3.5L12 3.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  } @else {
+                    {{ i + 1 }}
+                  }
+                </div>
+                <span class="tracking-step__label">{{ stepLabel(step) }}</span>
+              </div>
+              @if (i < statusSteps.length - 1) {
+                <div class="tracking-step__line" [class.tracking-step__line--done]="stepState(step) === 'done'"></div>
+              }
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Status history timeline -->
+      @if (o.statusHistory && o.statusHistory.length > 0) {
+        <div class="tracking-card tracking-card--history">
+          <h2 class="tracking-card__title">Status history</h2>
+          <div class="status-timeline">
+            @for (entry of o.statusHistory; track entry.changedAt; let last = $last) {
+              <div class="status-timeline__entry" [class.status-timeline__entry--current]="last">
+                <div class="status-timeline__dot" [class.status-timeline__dot--current]="last"></div>
+                @if (!last) { <div class="status-timeline__line"></div> }
+                <div class="status-timeline__content">
+                  <span class="status-timeline__badge"
+                    [attr.data-status]="entry.status.toLowerCase()">{{ stepLabel(entry.status) }}</span>
+                  <span class="status-timeline__time">{{ entry.changedAt | date:'d MMM yyyy, h:mm a' }}</span>
+                  @if (entry.note) {
+                    <span class="status-timeline__note">{{ entry.note }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="confirmation__grid">
+        <div class="confirmation__section">
+          <h2>Order details</h2>
+          @for (item of o.items; track item.productId) {
+            <div class="confirmation__item">
+              @if (item.productImageUrl) {
+                <img [src]="item.productImageUrl" [alt]="item.productName" [title]="item.productName" width="56" height="56">
+              } @else {
+                <span class="img-unavailable confirmation__item-img--fallback">No Image</span>
+              }
+              <div class="confirmation__item-info">
+                <p class="confirmation__item-name">{{ item.productName }}</p>
+                <p class="confirmation__item-sku">SKU: {{ item.productSku }}</p>
+                <p>Qty: {{ item.quantity }} × £{{ item.unitPrice.toFixed(2) }}</p>
+              </div>
+              <p class="confirmation__item-total">£{{ item.lineTotal.toFixed(2) }}</p>
+            </div>
+          }
+
+          <div class="confirmation__totals">
+            <div class="confirmation__total-row">
+              <span>Subtotal</span>
+              <span>£{{ o.subTotal.toFixed(2) }}</span>
+            </div>
+            <div class="confirmation__total-row">
+              <span>Delivery</span>
+              <span>{{ o.deliveryCharge === 0 ? 'FREE' : '£' + o.deliveryCharge.toFixed(2) }}</span>
+            </div>
+            <div class="confirmation__total-row confirmation__total-row--total">
+              <span>Total</span>
+              <span>£{{ o.total.toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="confirmation__section">
+            <h2>Delivery to</h2>
+            <p>{{ o.deliveryName }}</p>
+            <p>{{ o.deliveryAddress }}</p>
+          </div>
+          <div class="confirmation__section">
+            <h2>Payment</h2>
+            <p>{{ o.paymentReference }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="confirmation__actions">
+        <a class="btn btn--primary" routerLink="/orders">View my orders</a>
+        <a class="btn btn--ghost" routerLink="/">Continue shopping</a>
+      </div>
+    </div>
+  </div>
+}

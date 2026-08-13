@@ -1,0 +1,55 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Audit Log</h1>
+      <p class="sub">{{ filtered().length }} of {{ logs().length }} entries</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert--error">{{ error() }}</div>
+  }
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Recent admin actions</h2>
+      <div class="card-toolbar">
+        <input type="search" placeholder="Search action, entity, actor…"
+               [ngModel]="search()" (ngModelChange)="search.set($event)" />
+      </div>
+    </div>
+    @if (isLoading()) {
+      <p style="padding:24px;color:#767676">Loading audit log…</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>Summary</th>
+              <th>Actor</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (log of filtered(); track log.id) {
+              <tr>
+                <td><span class="pill {{ actionPill(log.action) }}">{{ log.action }}</span></td>
+                <td>
+                  <span class="cell-main">{{ log.entityType }}</span>
+                  <span class="cell-sub">{{ log.entityId | slice:0:8 }}…</span>
+                </td>
+                <td class="summary-cell">{{ log.summary }}</td>
+                <td>{{ log.actorEmail }}</td>
+                <td>{{ log.createdAtUtc | date:'d MMM yy, HH:mm' }}</td>
+              </tr>
+            } @empty {
+              <tr class="empty-row"><td colspan="5">No audit entries found.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

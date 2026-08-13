@@ -1,0 +1,37 @@
+<div class="orders-page">
+  <div class="container">
+    <h1 class="orders-page__title">My orders</h1>
+
+    @if (loading()) {
+      @for (_ of [1,2,3]; track _) {
+        <div class="order-card order-card--skeleton">
+          <div class="skeleton-line skeleton-line--title"></div>
+          <div class="skeleton-line skeleton-line--sub"></div>
+        </div>
+      }
+    } @else if (orders().length === 0) {
+      <div class="orders-empty">
+        <p>You haven't placed any orders yet.</p>
+        <a class="btn btn--primary" routerLink="/">Start shopping</a>
+      </div>
+    } @else {
+      <div class="orders-list">
+        @for (order of orders(); track order.id) {
+          <a class="order-card" [routerLink]="['/orders', order.orderNumber]">
+            <div class="order-card__header">
+              <div>
+                <p class="order-card__number">{{ order.orderNumber }}</p>
+                <p class="order-card__date">{{ order.placedAt | date:'d MMM yyyy' }}</p>
+              </div>
+              <span class="order-card__status">{{ order.status }}</span>
+            </div>
+            <div class="order-card__footer">
+              <span>{{ order.itemCount }} item{{ order.itemCount !== 1 ? 's' : '' }}</span>
+              <span class="order-card__total">£{{ order.total.toFixed(2) }}</span>
+            </div>
+          </a>
+        }
+      </div>
+    }
+  </div>
+</div>

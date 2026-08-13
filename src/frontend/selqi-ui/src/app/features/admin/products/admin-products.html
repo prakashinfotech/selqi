@@ -1,0 +1,234 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Products</h1>
+      <p class="sub">{{ filtered().length }} of {{ products().length }} products</p>
+    </div>
+    <button class="btn btn--primary" type="button" (click)="openCreate()">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add product
+    </button>
+  </div>
+
+  @if (message(); as msg) {
+    <div class="alert alert--{{ msg.type }}">{{ msg.text }}</div>
+  }
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Product catalogue</h2>
+      <div class="card-toolbar">
+        <input type="search" placeholder="Search by name, SKU, category…"
+               [ngModel]="search()" (ngModelChange)="search.set($event)" />
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <p class="loading-msg">Loading products…</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category / Brand</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Updated</th>
+              <th aria-label="Actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of filtered(); track p.id) {
+              <tr>
+                <td>
+                  <span class="cell-main">{{ p.name }}</span>
+                  <span class="cell-sub">{{ p.sku }}</span>
+                </td>
+                <td>
+                  <span class="cell-main">{{ p.categoryName }}</span>
+                  <span class="cell-sub">{{ p.brandName }}</span>
+                </td>
+                <td>
+                  {{ p.price | currency:'GBP':'symbol':'1.2-2' }}
+                  @if (p.wasPrice) {
+                    <span class="cell-sub was-price">was {{ p.wasPrice | currency:'GBP':'symbol':'1.2-2' }}</span>
+                  }
+                </td>
+                <td>
+                  <span [class.low-stock-val]="p.totalStock === 0">{{ p.totalStock }}</span>
+                  @if (p.totalStock === 0) { <span class="low-badge">Out</span> }
+                </td>
+                <td>
+                  <span class="pill {{ p.isDeleted ? 'pill--gray' : 'pill--green' }}">
+                    {{ p.isDeleted ? 'Hidden' : 'Live' }}
+                  </span>
+                  @if (p.isFeatured) { <span class="pill pill--amber pill-ml">Featured</span> }
+                </td>
+                <td>{{ p.updatedAtUtc | date:'d MMM yy' }}</td>
+                <td>
+                  <button class="btn btn--ghost btn--sm" type="button" (click)="openEdit(p)">Edit</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr class="empty-row"><td colspan="7">No products match your search.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- ── Create Product Modal ────────────────────────────────────────────────── -->
+<div class="modal-backdrop" [class.open]="activeModal() === 'create'" (click)="closeModal()">
+  <div class="modal modal--lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Add product</h3>
+      <button type="button" (click)="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="create-category">Category</label>
+          <select id="create-category" title="Category" [(ngModel)]="createForm.categoryId">
+            @for (c of categories(); track c.id) { <option [value]="c.id">{{ c.name }}</option> }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="create-brand">Brand</label>
+          <select id="create-brand" title="Brand" [(ngModel)]="createForm.brandId">
+            @for (b of brands(); track b.id) { <option [value]="b.id">{{ b.name }}</option> }
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group col-full">
+          <label for="create-name">Product name</label>
+          <input id="create-name" type="text" [(ngModel)]="createForm.name" placeholder="e.g. Selqi Home Sofa Bed" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="create-sku">SKU</label>
+          <input id="create-sku" type="text" [(ngModel)]="createForm.sku" placeholder="e.g. ARG-123456" />
+        </div>
+        <div class="form-group">
+          <label for="create-price">Price (£)</label>
+          <input id="create-price" type="number" min="0" step="0.01" [(ngModel)]="createForm.price" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="create-was-price">Was price (£) <span class="optional">optional</span></label>
+          <input id="create-was-price" type="number" min="0" step="0.01" placeholder="Leave blank if not on sale"
+                 [ngModel]="createForm.wasPrice"
+                 (ngModelChange)="createForm.wasPrice = $event || null" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="create-short-desc">Short description</label>
+        <textarea id="create-short-desc" rows="2" [(ngModel)]="createForm.shortDescription"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="create-full-desc">Full description <span class="optional">optional</span></label>
+        <textarea id="create-full-desc" rows="3"
+                  [ngModel]="createForm.fullDescription"
+                  (ngModelChange)="createForm.fullDescription = $event || null"></textarea>
+      </div>
+
+      <label class="form-check">
+        <input id="create-featured" type="checkbox" [(ngModel)]="createForm.isFeatured" /> Feature on home page
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--ghost" type="button" (click)="closeModal()">Cancel</button>
+      <button class="btn btn--primary" type="button" (click)="saveCreate()" [disabled]="saving()">
+        {{ saving() ? 'Creating…' : 'Create product' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit Product Modal ──────────────────────────────────────────────────── -->
+<div class="modal-backdrop" [class.open]="activeModal() === 'edit'" (click)="closeModal()">
+  <div class="modal modal--lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Edit Product</h3>
+      <button type="button" (click)="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group col-full">
+          <label for="edit-name">Product name</label>
+          <input id="edit-name" type="text" [(ngModel)]="editForm.name" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-short-desc">Short description</label>
+        <textarea id="edit-short-desc" rows="2" [(ngModel)]="editForm.shortDescription"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="edit-price">Price (£)</label>
+          <input id="edit-price" type="number" min="0" step="0.01" [(ngModel)]="editForm.price" />
+        </div>
+        <div class="form-group">
+          <label for="edit-was-price">Was price (£)</label>
+          <input id="edit-was-price" type="number" min="0" step="0.01"
+                 [ngModel]="editForm.wasPrice" (ngModelChange)="editForm.wasPrice = $event || null" />
+        </div>
+      </div>
+
+      <div class="check-row">
+        <label class="form-check">
+          <input id="edit-featured" type="checkbox" [(ngModel)]="editForm.isFeatured" /> Featured on home page
+        </label>
+        <label class="form-check">
+          <input id="edit-hidden" type="checkbox" [(ngModel)]="editForm.isDeleted" /> Hide product from catalogue
+        </label>
+      </div>
+
+      <div class="inv-section">
+        <h4>Store inventory</h4>
+        @if (editTarget; as p) {
+          <div class="inv-table-wrap">
+            <table>
+              <thead>
+                <tr><th>Store</th><th>Town</th><th>Qty available</th></tr>
+              </thead>
+              <tbody>
+                @for (inv of p.inventory; track inv.storeId) {
+                  <tr>
+                    <td>{{ inv.storeName }}</td>
+                    <td>{{ inv.town }}</td>
+                    <td>
+                      <input class="qty-input" type="number" min="0"
+                             [title]="'Quantity for ' + inv.storeName"
+                             [ngModel]="inventoryQty(inv.storeId)"
+                             (ngModelChange)="setQty(inv.storeId, $event)" />
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--ghost" type="button" (click)="closeModal()">Cancel</button>
+      <button class="btn btn--primary" type="button" (click)="saveEdit()" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Save changes' }}
+      </button>
+    </div>
+  </div>
+</div>

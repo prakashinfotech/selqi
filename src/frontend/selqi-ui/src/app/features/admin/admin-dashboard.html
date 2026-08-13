@@ -1,0 +1,125 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Overview</h1>
+      <p class="sub">Welcome back — here's what's happening today.</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert--error">{{ error() }}</div>
+  }
+
+  @if (isLoading()) {
+    <p class="loading-msg">Loading overview…</p>
+  } @else {
+    <div class="stat-grid">
+      <div class="stat-card">
+        <span class="stat-label">Active Products</span>
+        <span class="stat-value">{{ dashboard()?.productCount ?? 0 }}</span>
+      </div>
+      <div class="stat-card stat-card--warn">
+        <span class="stat-label">Out of Stock</span>
+        <span class="stat-value">{{ dashboard()?.outOfStockProductCount ?? 0 }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Total Orders</span>
+        <span class="stat-value">{{ dashboard()?.orderCount ?? 0 }}</span>
+      </div>
+      <div class="stat-card stat-card--success">
+        <span class="stat-label">Revenue</span>
+        <span class="stat-value">{{ dashboard()?.totalRevenue ?? 0 | currency:'GBP':'symbol':'1.0-0' }}</span>
+      </div>
+    </div>
+
+    <div class="overview-grid">
+      <!-- Recent orders -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Recent Orders</h2>
+          <a routerLink="/admin/orders" class="btn btn--ghost btn--sm">View all</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (o of recentOrders(); track o.id) {
+                <tr>
+                  <td><span class="cell-main">{{ o.orderNumber }}</span></td>
+                  <td>
+                    <span class="cell-main">{{ o.customerName }}</span>
+                    <span class="cell-sub">{{ o.customerEmail }}</span>
+                  </td>
+                  <td>{{ o.total | currency:'GBP':'symbol':'1.2-2' }}</td>
+                  <td><span class="pill {{ statusPill(o.status) }}">{{ o.status }}</span></td>
+                  <td>{{ o.placedAt | date:'d MMM' }}</td>
+                </tr>
+              } @empty {
+                <tr class="empty-row"><td colspan="5">No recent orders.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Store snapshot -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Stores</h2>
+          <a routerLink="/admin/stores" class="btn btn--ghost btn--sm">Manage</a>
+        </div>
+        <div class="store-list">
+          @for (s of stores(); track s.id) {
+            <div class="store-row">
+              <div class="store-info">
+                <span class="store-name">{{ s.name }}</span>
+                <span class="store-meta">{{ s.town }} · <span class="pill {{ typePill(s.storeType) }}">{{ s.storeType === 'CollectionPoint' ? 'Collection' : s.storeType }}</span></span>
+              </div>
+              <div class="store-stats">
+                <span>{{ s.totalStockItems }} units</span>
+                @if (s.lowStockProductCount > 0) {
+                  <span class="low-badge">{{ s.lowStockProductCount }} low</span>
+                }
+                <span class="pill {{ s.isActive ? 'pill--green' : 'pill--gray' }}">{{ s.isActive ? 'Active' : 'Off' }}</span>
+              </div>
+            </div>
+          } @empty {
+            <p class="empty-state">No stores found.</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick nav -->
+    <div class="quick-nav">
+      <a routerLink="/admin/products" class="quick-card">
+        <span class="quick-icon">📦</span>
+        <span class="quick-label">Manage Products</span>
+        <span class="quick-sub">Update prices, stock & visibility</span>
+      </a>
+      <a routerLink="/admin/stores" class="quick-card">
+        <span class="quick-icon">🏪</span>
+        <span class="quick-label">Manage Stores</span>
+        <span class="quick-sub">Add stores, update inventory</span>
+      </a>
+      <a routerLink="/admin/orders" class="quick-card">
+        <span class="quick-icon">📋</span>
+        <span class="quick-label">Process Orders</span>
+        <span class="quick-sub">Update order statuses</span>
+      </a>
+      <a routerLink="/admin/audit" class="quick-card">
+        <span class="quick-icon">🔍</span>
+        <span class="quick-label">Audit Log</span>
+        <span class="quick-sub">Review recent admin actions</span>
+      </a>
+    </div>
+  }
+</div>

@@ -1,0 +1,128 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  name: LocalPool   # self-hosted agent — free, no parallelism limit
+
+stages:
+
+  # ─── Stage 1: Backend ─────────────────────────────────────────────────────
+  - stage: Backend
+    displayName: Backend (.NET 10)
+    jobs:
+      - job: BuildBackend
+        displayName: Restore & Build
+        steps:
+          - checkout: self
+
+          - script: |
+              set PATH=C:\Program Files\dotnet;%PATH%
+              dotnet restore src/backend/Selqi.Api/Selqi.Api.csproj
+            displayName: Restore
+
+          - script: |
+              set PATH=C:\Program Files\dotnet;%PATH%
+              dotnet build src/backend/Selqi.Api/Selqi.Api.csproj -c Release --no-restore
+            displayName: Build
+
+  # ─── Stage 2: Frontend ────────────────────────────────────────────────────
+  - stage: Frontend
+    displayName: Frontend (Angular 21)
+    dependsOn: Backend
+    jobs:
+      - job: BuildFrontend
+        displayName: Install, Build & Test
+        steps:
+          - checkout: self
+
+          - script: npm ci
+            displayName: Install dependencies
+            workingDirectory: src/frontend/selqi-ui
+
+          - script: npm run build
+            displayName: Build Angular
+            workingDirectory: src/frontend/selqi-ui
+
+          - script: npm test -- --watch=false
+            displayName: Run Tests (Vitest)
+            workingDirectory: src/frontend/selqi-ui
+
+  # ─── Stage 3: Docker build check ─────────────────────────────────────────
+  - stage: DockerBuild
+    displayName: Docker Build Check
+    dependsOn:
+      - Backend
+      - Frontend
+    jobs:
+      - job: DockerBuildAPI
+        displayName: Build API Docker image
+        steps:
+          - checkout: self
+
+          - task: Docker@2
+            displayName: Build API image (no push)
+            inputs:
+              command: build
+              dockerfile: src/backend/Dockerfile
+              buildContext: $(Build.SourcesDirectory)
+              tags: selqi-api:$(Build.BuildId)
+
+      - job: DockerBuildWeb
+        displayName: Build Web Docker image
+        steps:
+          - checkout: self
+
+          - task: Docker@2
+            displayName: Build Web image (no push)
+            inputs:
+              command: build
+              dockerfile: src/frontend/selqi-ui/Dockerfile
+              buildContext: $(Build.SourcesDirectory)
+              tags: selqi-web:$(Build.BuildId)
+
+  # ─── Stage 4: Push to Docker Hub (main branch only) ───────────────────────
+  - stage: DockerPush
+    displayName: Push to Docker Hub
+    dependsOn: DockerBuild
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: PushAPI
+        displayName: Build & Push API image
+        steps:
+          - checkout: self
+
+          - task: Docker@2
+            displayName: Build and push API image
+            inputs:
+              command: buildAndPush
+              containerRegistry: 'DockerHub'
+              repository: 'manthanpsspl/ai_acceleration_demo_api'
+              dockerfile: src/backend/Dockerfile
+              buildContext: $(Build.SourcesDirectory)
+              tags: |
+                $(Build.BuildId)
+                latest
+
+      - job: PushWeb
+        displayName: Build & Push Web image
+        steps:
+          - checkout: self
+
+          - task: Docker@2
+            displayName: Build and push Web image
+            inputs:
+              command: buildAndPush
+              containerRegistry: 'DockerHub'
+              repository: 'manthanpsspl/ai_acceleration_demo_web'
+              dockerfile: src/frontend/selqi-ui/Dockerfile
+              buildContext: $(Build.SourcesDirectory)
+              tags: |
+                $(Build.BuildId)
+                latest

@@ -1,0 +1,94 @@
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-card__logo">
+      <img src="selqi-logo.svg" alt="Selqi" width="72" height="72">
+    </div>
+
+    <h1 class="auth-card__title">Create your Selqi account</h1>
+
+    @if (serverError()) {
+      <div class="auth-card__error" role="alert">{{ serverError() }}</div>
+    }
+
+    <form class="auth-form" (ngSubmit)="submit()" novalidate>
+
+      <div class="form-row">
+        <div class="form-group" [class.form-group--error]="fieldErrors()['firstName']">
+          <label class="form-label" for="firstName">First name</label>
+          <input class="form-input" id="firstName" type="text"
+            [(ngModel)]="firstName" name="firstName" autocomplete="given-name" maxlength="100"
+            (ngModelChange)="clearFieldError('firstName')"
+            [class.form-input--error]="fieldErrors()['firstName']">
+          @if (fieldErrors()['firstName']) {
+            <span class="form-error" role="alert">{{ fieldErrors()['firstName'] }}</span>
+          }
+        </div>
+        <div class="form-group" [class.form-group--error]="fieldErrors()['lastName']">
+          <label class="form-label" for="lastName">Last name</label>
+          <input class="form-input" id="lastName" type="text"
+            [(ngModel)]="lastName" name="lastName" autocomplete="family-name" maxlength="100"
+            (ngModelChange)="clearFieldError('lastName')"
+            [class.form-input--error]="fieldErrors()['lastName']">
+          @if (fieldErrors()['lastName']) {
+            <span class="form-error" role="alert">{{ fieldErrors()['lastName'] }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="form-group" [class.form-group--error]="fieldErrors()['email']">
+        <label class="form-label" for="email">Email address</label>
+        <input class="form-input" id="email" type="email"
+          [(ngModel)]="email" name="email" autocomplete="email"
+          maxlength="256" placeholder="e.g. name@example.com"
+          (ngModelChange)="clearFieldError('email')"
+          [class.form-input--error]="fieldErrors()['email']">
+        @if (fieldErrors()['email']) {
+          <span class="form-error" role="alert">{{ fieldErrors()['email'] }}</span>
+        }
+      </div>
+
+      <div class="form-group" [class.form-group--error]="fieldErrors()['password']">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-input" id="password" type="password"
+          [(ngModel)]="password" name="password" autocomplete="new-password" maxlength="100"
+          (ngModelChange)="clearFieldError('password')"
+          [class.form-input--error]="fieldErrors()['password']">
+        @if (fieldErrors()['password']) {
+          <span class="form-error" role="alert">{{ fieldErrors()['password'] }}</span>
+        } @else {
+          <span class="form-hint">Must be at least 8 characters</span>
+        }
+      </div>
+
+      <div class="form-group" [class.form-group--error]="fieldErrors()['confirmPassword']">
+        <label class="form-label" for="confirmPassword">Confirm password</label>
+        <input class="form-input" id="confirmPassword" type="password"
+          [(ngModel)]="confirmPassword" name="confirmPassword" autocomplete="new-password" maxlength="100"
+          (ngModelChange)="clearFieldError('confirmPassword')"
+          [class.form-input--error]="fieldErrors()['confirmPassword']">
+        @if (fieldErrors()['confirmPassword']) {
+          <span class="form-error" role="alert">{{ fieldErrors()['confirmPassword'] }}</span>
+        }
+      </div>
+
+      <p class="auth-terms">
+        By creating an account you agree to our
+        <a href="#" class="auth-terms__link">Terms &amp; Conditions</a> and
+        <a href="#" class="auth-terms__link">Privacy Policy</a>.
+      </p>
+
+      <button class="btn-submit" type="submit" [disabled]="loading()">
+        @if (loading()) { Creating account... } @else { Create account }
+      </button>
+
+    </form>
+
+    <div class="auth-card__divider">
+      <span>Already have an account?</span>
+    </div>
+
+    <a class="btn-secondary" routerLink="/login">Sign in</a>
+
+  </div>
+</div>
