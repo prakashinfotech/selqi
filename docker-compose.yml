@@ -2,42 +2,70 @@ services:
 
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: selqi-db
+
     environment:
-      MSSQL_SA_PASSWORD: "${SELQI_DB_PASSWORD:?Set SELQI_DB_PASSWORD in the local .env file}"
       ACCEPT_EULA: "Y"
       MSSQL_PID: "Express"
+      MSSQL_SA_PASSWORD: "${SELQI_DB_PASSWORD:?Set SELQI_DB_PASSWORD in .env}"
+
     ports:
-      - "1433:1433"
+      - "127.0.0.1:1433:1433"
+
     volumes:
       - sqldata:/var/opt/mssql
+
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -C"]
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -C"
+        ]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 30s
 
+    restart: unless-stopped
+
+
   api:
     build:
       context: .
       dockerfile: src/backend/Dockerfile
+
+    container_name: selqi-api
+
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
-      ConnectionStrings__SelqiDb: "Server=db,1433;Database=SelqiDb;User Id=sa;Password=${SELQI_DB_PASSWORD:?Set SELQI_DB_PASSWORD in the local .env file};TrustServerCertificate=True;MultipleActiveResultSets=true"
+
+      ConnectionStrings__SelqiDb: "Server=db,1433;Database=SelqiDb;User Id=sa;Password=${SELQI_DB_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=true"
+
     ports:
-      - "5000:8080"
+      - "127.0.0.1:5007:8080"
+
     depends_on:
       db:
         condition: service_healthy
+
+    restart: unless-stopped
+
 
   web:
     build:
       context: .
       dockerfile: src/frontend/selqi-ui/Dockerfile
+
+    container_name: selqi-web
+
     ports:
-      - "80:80"
+      - "127.0.0.1:8083:80"
+
     depends_on:
       - api
+
+    restart: unless-stopped
+
 
 volumes:
   sqldata:
